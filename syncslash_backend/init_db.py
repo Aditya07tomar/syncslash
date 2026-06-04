@@ -1,9 +1,3 @@
-"""
-Database initialization script for deployment.
-Runs schema.sql + analytics_schema.sql to set up all tables,
-stored procedures, views, and seed data.
-Called automatically on server startup.
-"""
 import os
 import psycopg2
 from dotenv import load_dotenv
@@ -47,17 +41,6 @@ def init_database():
                 SELECT EXISTS (
                     SELECT FROM pg_proc WHERE proname = 'generatefatiguescore'
                 )
-            """)
-            if not cur.fetchone()[0]:
-                print("🔧 Loading analytics schema...")
-                analytics_path = os.path.join(os.path.dirname(__file__), "db", "analytics_schema.sql")
-                if os.path.exists(analytics_path):
-                    with open(analytics_path, "r") as f:
-                        cur.execute(f.read())
-                    conn.commit()
-                    print("✅ Analytics schema loaded")
-
-        cur.execute("""
             CREATE TABLE IF NOT EXISTS Subscription_Groups (
                 group_id SERIAL PRIMARY KEY,
                 name VARCHAR(100) NOT NULL,
@@ -66,8 +49,6 @@ def init_database():
                 creator_id INT REFERENCES Users(user_id),
                 created_at TIMESTAMP DEFAULT NOW()
             )
-        """)
-        cur.execute("""
             CREATE TABLE IF NOT EXISTS Group_Members (
                 id SERIAL PRIMARY KEY,
                 group_id INT REFERENCES Subscription_Groups(group_id) ON DELETE CASCADE,

@@ -4,13 +4,11 @@ import '../../core/theme.dart';
 import '../../state/app_provider.dart';
 import 'kill_switch_screen.dart';
 
-//to load data
 class DashboardTab extends StatefulWidget {
   @override
   _DashboardTabState createState() => _DashboardTabState();
 }
 
-//fetches info
 class _DashboardTabState extends State<DashboardTab> {
   @override
   void initState() {
@@ -20,7 +18,6 @@ class _DashboardTabState extends State<DashboardTab> {
     });
   }
 
-  //loading screen while fetching, rebuilds ui after done
   @override
   Widget build(BuildContext context) {
     return Consumer<AppProvider>(
@@ -38,7 +35,6 @@ class _DashboardTabState extends State<DashboardTab> {
           );
         }
 
-        // Error state
         if (provider.errorMessage != null) {
           return Center(
             child: Padding(
@@ -80,7 +76,7 @@ class _DashboardTabState extends State<DashboardTab> {
                 const SizedBox(height: 25),
                 _buildCategoryBreakdown(provider.summaryData),
                 const SizedBox(height: 25),
-                // Active groups
+                
                 if (provider.groups.isNotEmpty) ...[
                   Row(
                     children: [
@@ -171,9 +167,8 @@ class _DashboardTabState extends State<DashboardTab> {
     );
   }
 
-  //avatar and greeting
   Widget _buildHeader(BuildContext context, AppProvider provider) {
-    // Determine greeting based on time of day
+    
     final hour = DateTime.now().hour;
     String greeting;
     if (hour < 12) {

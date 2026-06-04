@@ -8,13 +8,6 @@ from backend.b1_ingestion.plaid_client import (
 )
 
 def setup_sandbox_user(user_id: int):
-    """
-    Full flow for connecting a sandbox bank account to a user:
-    1. Create fake public token
-    2. Exchange for access token
-    3. Store access token in Users table
-    Returns the access token.
-    """
     public_token  = create_sandbox_token()
     access_token  = exchange_for_access_token(public_token)
 
@@ -27,12 +20,6 @@ def setup_sandbox_user(user_id: int):
     return access_token
 
 def import_transactions(user_id: int, access_token: str):
-    """
-    Fetches transactions from Plaid sandbox and inserts
-    them into Transaction_Logs. Uses ON CONFLICT DO NOTHING
-    so re-running never creates duplicates (idempotent).
-    Returns count of newly inserted rows.
-    """
     transactions = fetch_transactions(access_token)
     print(f"[importer] Fetched {len(transactions)} transactions from Plaid")
 

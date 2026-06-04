@@ -13,10 +13,6 @@ from plaid import Configuration, ApiClient, Environment
 load_dotenv()
 
 def get_plaid_client():
-    """
-    Creates and returns a configured Plaid API client.
-    Uses sandbox environment — no real bank data.
-    """
     config = Configuration(
         host=Environment.Sandbox,
         api_key={
@@ -27,13 +23,6 @@ def get_plaid_client():
     return plaid_api.PlaidApi(ApiClient(config))
 
 def create_sandbox_token():
-    """
-    Plaid sandbox needs a fake 'public token' first.
-    This simulates what happens when a user connects
-    their bank through the Plaid UI in the real app.
-    We use 'ins_109508' which is a Chase sandbox bank
-    pre-loaded with Netflix, Spotify, Amazon transactions.
-    """
     client = get_plaid_client()
     req = SandboxPublicTokenCreateRequest(
         institution_id="ins_109508",
@@ -43,25 +32,12 @@ def create_sandbox_token():
     return response.public_token
 
 def exchange_for_access_token(public_token: str):
-    """
-    Exchange the temporary public token for a permanent
-    access token. This access token is what we store in
-    the Users table (plaid_token column) and reuse every
-    time we sync transactions for that user.
-    """
     client = get_plaid_client()
     req = ItemPublicTokenExchangeRequest(public_token=public_token)
     response = client.item_public_token_exchange(req)
     return response.access_token
 
 def fetch_transactions(access_token: str, days_back: int = 90):
-    """
-    Pulls transactions for the last N days.
-    Returns a list of Plaid Transaction objects.
-    The sandbox bank has realistic recurring charges
-    already built in — Netflix on the 1st, Spotify
-    on the 15th, etc.
-    """
     client = get_plaid_client()
     end_date   = datetime.date.today()
     start_date = end_date - datetime.timedelta(days=days_back)

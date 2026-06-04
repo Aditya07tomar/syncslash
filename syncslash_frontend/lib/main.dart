@@ -35,8 +35,6 @@ class MainApp extends StatelessWidget {
   }
 }
 
-/// Checks SecureStorage for saved JWT on app start.
-/// If found → go to dashboard. If not → login screen.
 class AuthGate extends StatefulWidget {
   const AuthGate({Key? key}) : super(key: key);
 
@@ -60,7 +58,7 @@ class _AuthGateState extends State<AuthGate> {
     final userName = await storage.read(key: 'user_name');
 
     if (token != null && userId != null && mounted) {
-      // Restore session from saved credentials
+      
       Provider.of<AppProvider>(context, listen: false).setAuthData(
         int.tryParse(userId) ?? 1,
         userName ?? 'User',

@@ -50,13 +50,10 @@ class SimulatePaymentRequest(BaseModel):
 
 @app.post("/virtualcard/create", tags=["B3 — Payments"])
 def create_virtual_card(req: CreateCardRequest):
-    """Create a virtual card for a subscription."""
     try:
         card_number = "VC-" + str(uuid.uuid4())[:12].upper()
         run_query(
-            """INSERT INTO Virtual_Cards (user_id, sub_id, card_number, status)
-               VALUES (%s, %s, %s, 'active')
-               RETURNING card_id, card_number, status""",
+,
             params=(req.user_id, req.sub_id, card_number),
             fetch=True
         )
@@ -77,7 +74,6 @@ def create_virtual_card(req: CreateCardRequest):
 
 @app.get("/virtualcards/{user_id}", tags=["B3 — Payments"])
 def get_user_cards(user_id: int):
-    """Get all virtual cards for a user."""
     try:
         rows = run_query("""
             SELECT vc.card_id, vc.card_number, vc.status, vc.created_at,
@@ -87,14 +83,7 @@ def get_user_cards(user_id: int):
             LEFT JOIN Services sv ON s.service_id = sv.service_id
             WHERE vc.user_id = %s
             ORDER BY vc.created_at DESC
-        """, params=(user_id,))
-        return {"user_id": user_id, "cards": rows}
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
-
-@app.post("/virtualcard/{card_id}/freeze", tags=["B3 — Payments"])
-def freeze_card(card_id: int):
-    """Freeze a virtual card (kill switch)."""
+Freeze a virtual card (kill switch)."""
     try:
         result = run_query(
             "UPDATE Virtual_Cards SET status = 'frozen' WHERE card_id = %s RETURNING card_id",
@@ -117,7 +106,6 @@ def freeze_card(card_id: int):
 
 @app.post("/virtualcard/{card_id}/unfreeze", tags=["B3 — Payments"])
 def unfreeze_card(card_id: int):
-    """Unfreeze a virtual card."""
     try:
         result = run_query(
             "UPDATE Virtual_Cards SET status = 'active' WHERE card_id = %s RETURNING card_id",
@@ -139,7 +127,6 @@ def unfreeze_card(card_id: int):
 
 @app.delete("/virtualcard/{card_id}", tags=["B3 — Payments"])
 def cancel_card(card_id: int):
-    """Cancel (delete) a virtual card."""
     try:
         
         run_query(
@@ -162,7 +149,6 @@ def cancel_card(card_id: int):
 
 @app.post("/payments/simulate", tags=["B3 — Payments"])
 def simulate_payment(req: SimulatePaymentRequest):
-    """Simulate a payment charge on a virtual card."""
     try:
         rows = run_query(
             "SELECT status FROM Virtual_Cards WHERE card_number = %s",
@@ -190,7 +176,6 @@ class SettleBillRequest(BaseModel):
 
 @app.get("/p2p/balances/{user_id}", tags=["P2P — Shared Bills"])
 def get_p2p_balances(user_id: int):
-    """Get all pending P2P balances for a user."""
     try:
         
         owes_you = run_query("""
@@ -203,9 +188,6 @@ def get_p2p_balances(user_id: int):
             LEFT JOIN Services sv ON s.service_id = sv.service_id
             WHERE sb.payer_id = %s AND sb.status = 'pending'
             ORDER BY sb.created_at DESC
-        """, params=(user_id,))
-
-        you_owe = run_query("""
             SELECT sb.bill_id, sb.amount_owed, sb.status, sb.due_date,
                    u.name AS friend_name, u.email AS friend_email,
                    sv.service_name
@@ -215,29 +197,10 @@ def get_p2p_balances(user_id: int):
             LEFT JOIN Services sv ON s.service_id = sv.service_id
             WHERE sb.debtor_id = %s AND sb.status = 'pending'
             ORDER BY sb.created_at DESC
-        """, params=(user_id,))
-
-        total_owed_to_you = sum(float(r['amount_owed']) for r in owes_you) if owes_you else 0
-        total_you_owe = sum(float(r['amount_owed']) for r in you_owe) if you_owe else 0
-
-        return {
-            "user_id": user_id,
-            "owes_you": owes_you,
-            "you_owe": you_owe,
-            "total_owed_to_you": total_owed_to_you,
-            "total_you_owe": total_you_owe,
-            "net_balance": total_owed_to_you - total_you_owe
-        }
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
-
-@app.post("/p2p/create", tags=["P2P — Shared Bills"])
-def create_shared_bill(req: CreateBillRequest):
-    """Create a new shared bill / P2P request."""
+Create a new shared bill / P2P request."""
     try:
         run_query(
-            """INSERT INTO Shared_Bills (sub_id, payer_id, debtor_id, amount_owed, due_date, status)
-               VALUES (%s, %s, %s, %s, %s, 'pending')""",
+,
             params=(req.sub_id, req.payer_id, req.debtor_id, req.amount_owed, req.due_date),
             fetch=False
         )
@@ -247,12 +210,9 @@ def create_shared_bill(req: CreateBillRequest):
 
 @app.post("/p2p/settle", tags=["P2P — Shared Bills"])
 def settle_bill(req: SettleBillRequest):
-    """Settle a pending shared bill."""
     try:
         result = run_query(
-            """UPDATE Shared_Bills SET status = 'settled', settled_at = NOW()
-               WHERE bill_id = %s AND status = 'pending'
-               RETURNING bill_id""",
+,
             params=(req.bill_id,),
             fetch=True
         )
@@ -266,7 +226,6 @@ def settle_bill(req: SettleBillRequest):
 
 @app.get("/p2p/history/{user_id}", tags=["P2P — Shared Bills"])
 def get_p2p_history(user_id: int):
-    """Get all P2P transaction history (settled + pending)."""
     try:
         rows = run_query("""
             SELECT sb.bill_id, sb.amount_owed, sb.status, sb.due_date, sb.settled_at,
@@ -281,13 +240,6 @@ def get_p2p_history(user_id: int):
             WHERE sb.payer_id = %s OR sb.debtor_id = %s
             ORDER BY sb.created_at DESC
             LIMIT 50
-        """, params=(user_id, user_id, user_id))
-        return {"user_id": user_id, "history": rows}
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
-
-try:
-    run_query("""
         CREATE TABLE IF NOT EXISTS Subscription_Groups (
             group_id     SERIAL PRIMARY KEY,
             name         VARCHAR(100) NOT NULL,
@@ -296,8 +248,6 @@ try:
             creator_id   INT NOT NULL REFERENCES Users(user_id),
             created_at   TIMESTAMP DEFAULT NOW()
         )
-    """, fetch=False)
-    run_query("""
         CREATE TABLE IF NOT EXISTS Group_Members (
             id         SERIAL PRIMARY KEY,
             group_id   INT NOT NULL REFERENCES Subscription_Groups(group_id) ON DELETE CASCADE,
@@ -305,19 +255,7 @@ try:
             joined_at  TIMESTAMP DEFAULT NOW(),
             UNIQUE(group_id, user_id)
         )
-    """, fetch=False)
-except:
-    pass  
-
-import random
-import string
-
-def _gen_invite_code():
-    return ''.join(random.choices(string.ascii_uppercase + string.digits, k=6))
-
-@app.get("/groups/{user_id}", tags=["Groups"])
-def get_user_groups(user_id: int):
-    """Get groups the user belongs to."""
+Get groups the user belongs to."""
     try:
         rows = run_query("""
             SELECT sg.group_id, sg.name, sg.invite_code, sg.sub_id,
@@ -329,24 +267,11 @@ def get_user_groups(user_id: int):
             LEFT JOIN Services sv ON s.service_id = sv.service_id
             WHERE gm.user_id = %s
             ORDER BY sg.created_at DESC
-        """, params=(user_id,))
-        return {"user_id": user_id, "groups": rows}
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
-
-class CreateGroupRequest(BaseModel):
-    name: str
-    creator_id: int
-    sub_id: int
-
-@app.post("/groups/create", tags=["Groups"])
-def create_group(req: CreateGroupRequest):
-    """Create a new group with an invite code."""
+Create a new group with an invite code."""
     try:
         invite_code = _gen_invite_code()
         run_query(
-            """INSERT INTO Subscription_Groups (name, invite_code, sub_id, creator_id)
-               VALUES (%s, %s, %s, %s)""",
+,
             params=(req.name, invite_code, req.sub_id, req.creator_id),
             fetch=False
         )
@@ -372,7 +297,6 @@ class JoinGroupRequest(BaseModel):
 
 @app.post("/groups/join", tags=["Groups"])
 def join_group(req: JoinGroupRequest):
-    """Join a group using an invite code."""
     try:
         group_rows = run_query(
             "SELECT group_id, name FROM Subscription_Groups WHERE invite_code = %s",
@@ -407,7 +331,6 @@ class SubFreezeRequest(BaseModel):
 
 @app.post("/subscription/{sub_id}/freeze", tags=["B3 — Payments"])
 def freeze_subscription(sub_id: int, req: SubFreezeRequest):
-    """Directly freeze a subscription in the database."""
     try:
         result = run_query(
             "UPDATE Subscriptions SET status = 'frozen' WHERE sub_id = %s AND user_id = %s RETURNING sub_id",
@@ -424,7 +347,6 @@ def freeze_subscription(sub_id: int, req: SubFreezeRequest):
 
 @app.post("/subscription/{sub_id}/unfreeze", tags=["B3 — Payments"])
 def unfreeze_subscription(sub_id: int, req: SubFreezeRequest):
-    """Directly unfreeze a subscription in the database."""
     try:
         result = run_query(
             "UPDATE Subscriptions SET status = 'active' WHERE sub_id = %s AND user_id = %s RETURNING sub_id",
@@ -449,7 +371,6 @@ from settlement_wrapper import settle_debts_as_dicts, CPP_AVAILABLE
 
 @app.get("/settlement/engine-status", tags=["C++ Engine"])
 def settlement_engine_status():
-    """Check if the C++ settlement engine is loaded."""
     return {
         "cpp_engine_loaded": CPP_AVAILABLE,
         "engine": "C++ pybind11 (O3 optimized)" if CPP_AVAILABLE else "Python fallback",
@@ -458,19 +379,6 @@ def settlement_engine_status():
 
 @app.get("/settlement/optimize/{group_id}", tags=["C++ Engine"])
 def optimize_group_settlement(group_id: int):
-    """
-    Fetches group members + subscription cost, calculates each member's
-    share, then runs the C++ Minimum Cash Flow algorithm to produce
-    the minimum number of transactions to settle all debts.
-    
-    Flow:
-      1. Get group details (subscription cost, creator)
-      2. Get all members
-      3. Calculate per-person share = total_cost / member_count
-      4. Creator paid full amount → positive balance
-      5. Others owe their share → negative balance
-      6. Feed into C++ engine → optimal transactions
-    """
     try:
         
         group_rows = run_query("""
@@ -481,82 +389,10 @@ def optimize_group_settlement(group_id: int):
             LEFT JOIN Subscriptions s ON sg.sub_id = s.sub_id
             LEFT JOIN Users u ON sg.creator_id = u.user_id
             WHERE sg.group_id = %s
-        """, params=(group_id,))
-
-        if not group_rows:
-            raise HTTPException(status_code=404, detail="Group not found")
-
-        group = group_rows[0]
-        total_cost = float(group['total_cost'])
-        creator_id = group['creator_id']
-        creator_name = group['creator_name'] or f"User {creator_id}"
-
-        members = run_query("""
             SELECT gm.user_id, u.name
             FROM Group_Members gm
             JOIN Users u ON gm.user_id = u.user_id
             WHERE gm.group_id = %s
-        """, params=(group_id,))
-
-        member_ids = {m['user_id'] for m in members}
-        if creator_id not in member_ids:
-            members.insert(0, {"user_id": creator_id, "name": creator_name})
-
-        member_count = len(members)
-        if member_count <= 1:
-            return {
-                "group_id": group_id,
-                "group_name": group['name'],
-                "total_cost": total_cost,
-                "member_count": member_count,
-                "per_person_share": total_cost,
-                "transactions": [],
-                "message": "Only one member — no settlements needed."
-            }
-
-        per_person = round(total_cost / member_count, 2)
-
-        net_balances = {}
-        for m in members:
-            name = m['name'] or f"User {m['user_id']}"
-            if m['user_id'] == creator_id:
-                
-                net_balances[name] = round(total_cost - per_person, 2)
-            else:
-                
-                net_balances[name] = round(-per_person, 2)
-
-        transactions = settle_debts_as_dicts(net_balances)
-
-        return {
-            "group_id": group_id,
-            "group_name": group['name'],
-            "total_cost": total_cost,
-            "member_count": member_count,
-            "per_person_share": per_person,
-            "engine": "C++ pybind11" if CPP_AVAILABLE else "Python fallback",
-            "net_balances": net_balances,
-            "transactions": transactions,
-            "message": f"Optimized into {len(transactions)} transaction(s) using Minimum Cash Flow algorithm."
-        }
-
-    except HTTPException:
-        raise
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
-
-@app.get("/")
-def root():
-    
-    return {
-        "status": "Subscription Optimizer API is running",
-        "docs": "Visit /docs for interactive API documentation"
-    }
-
-@app.get("/health")
-def health():
-    
-    """
     Health check endpoint.
     Why does this exist?
     In production, monitoring tools ping /health every 30 seconds.

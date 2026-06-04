@@ -7,35 +7,26 @@ class AppProvider with ChangeNotifier {
   String userName = 'User';
   String? jwtToken;
 
-  // ── Loading / Error states ──
   bool isLoading = true;
   bool isAnalyticsLoading = false;
   bool isCardsLoading = false;
   bool isP2PLoading = false;
   String? errorMessage;
 
-  // ── B1 Data ──
   List<dynamic> subscriptions = [];
   Map<String, dynamic>? summaryData;
 
-  // ── B2 Analytics Data ──
   Map<String, dynamic>? fatigueData;
   Map<String, dynamic>? ghostData;
   Map<String, dynamic>? redundancyData;
   Map<String, dynamic>? reportData;
   Map<String, dynamic>? graphData;
 
-  // ── B3 Virtual Cards ──
   List<dynamic> virtualCards = [];
 
-  // ── P2P / Split ──
   Map<String, dynamic>? p2pBalanceData;
   List<dynamic> p2pHistory = [];
   List<dynamic> groups = [];
-
-  // ═══════════════════════════════════════════════════════════
-  // AUTH
-  // ═══════════════════════════════════════════════════════════
 
   void setAuthData(int userId, String name, String token) {
     currentUserId = userId;
@@ -43,10 +34,6 @@ class AppProvider with ChangeNotifier {
     jwtToken = token;
     notifyListeners();
   }
-
-  // ═══════════════════════════════════════════════════════════
-  // B1 — DASHBOARD DATA
-  // ═══════════════════════════════════════════════════════════
 
   Future<void> loadInitialData() async {
     isLoading = true;
@@ -90,10 +77,6 @@ class AppProvider with ChangeNotifier {
     }
   }
 
-  // ═══════════════════════════════════════════════════════════
-  // B2 — ANALYTICS
-  // ═══════════════════════════════════════════════════════════
-
   Future<void> loadAnalytics() async {
     isAnalyticsLoading = true;
     notifyListeners();
@@ -134,10 +117,6 @@ class AppProvider with ChangeNotifier {
     }
   }
 
-  // ═══════════════════════════════════════════════════════════
-  // B3 — VIRTUAL CARDS
-  // ═══════════════════════════════════════════════════════════
-
   Future<void> loadVirtualCards() async {
     isCardsLoading = true;
     notifyListeners();
@@ -167,7 +146,7 @@ class AppProvider with ChangeNotifier {
     try {
       await _api.freezeCard(cardId);
       await loadVirtualCards();
-      await loadInitialData(); // refresh subscription statuses
+      await loadInitialData(); 
       return true;
     } catch (e) {
       print("Freeze Error: $e");
@@ -199,7 +178,6 @@ class AppProvider with ChangeNotifier {
     }
   }
 
-  // Kill switch (local + backend)
   void triggerKillSwitch(int subId) {
     final index = subscriptions.indexWhere((s) => s['sub_id'] == subId);
     if (index != -1) {
@@ -207,10 +185,6 @@ class AppProvider with ChangeNotifier {
       notifyListeners();
     }
   }
-
-  // ═══════════════════════════════════════════════════════════
-  // P2P / SPLIT
-  // ═══════════════════════════════════════════════════════════
 
   Future<void> loadP2PData() async {
     isP2PLoading = true;
@@ -289,7 +263,6 @@ class AppProvider with ChangeNotifier {
     }
   }
 
-  // --- C++ Engine Settlement Optimization ---
   Map<int, Map<String, dynamic>> optimizedSettlementData = {};
   bool isOptimizing = false;
 

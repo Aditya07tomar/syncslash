@@ -87,9 +87,6 @@ class _AnalyticsTabState extends State<AnalyticsTab> with SingleTickerProviderSt
   }
 }
 
-// ═══════════════════════════════════════════════════════════
-// FATIGUE TAB
-// ═══════════════════════════════════════════════════════════
 class _FatigueTab extends StatelessWidget {
   final Map<String, dynamic>? data;
   const _FatigueTab({this.data});
@@ -106,7 +103,7 @@ class _FatigueTab extends StatelessWidget {
     return ListView(
       padding: const EdgeInsets.all(20),
       children: [
-        // Summary cards
+        
         Row(
           children: [
             _statCard('Avg Fatigue', avgFatigue.toStringAsFixed(1), AppTheme.pastelYellow, Icons.speed_rounded),
@@ -153,7 +150,7 @@ class _FatigueTab extends StatelessWidget {
                   ],
                 ),
                 const SizedBox(height: 8),
-                // Fatigue bar
+                
                 ClipRRect(
                   borderRadius: BorderRadius.circular(4),
                   child: LinearProgressIndicator(
@@ -182,9 +179,6 @@ class _FatigueTab extends StatelessWidget {
   }
 }
 
-// ═══════════════════════════════════════════════════════════
-// GHOSTS TAB
-// ═══════════════════════════════════════════════════════════
 class _GhostTab extends StatelessWidget {
   final Map<String, dynamic>? data;
   const _GhostTab({this.data});
@@ -200,7 +194,7 @@ class _GhostTab extends StatelessWidget {
     return ListView(
       padding: const EdgeInsets.all(20),
       children: [
-        // Header card
+        
         Container(
           padding: const EdgeInsets.all(20),
           decoration: BoxDecoration(
@@ -267,9 +261,6 @@ class _GhostTab extends StatelessWidget {
   }
 }
 
-// ═══════════════════════════════════════════════════════════
-// REPORT TAB
-// ═══════════════════════════════════════════════════════════
 class _ReportTab extends StatelessWidget {
   final Map<String, dynamic>? data;
   const _ReportTab({this.data});
@@ -284,7 +275,7 @@ class _ReportTab extends StatelessWidget {
     return ListView(
       padding: const EdgeInsets.all(20),
       children: [
-        // Summary stats
+        
         Container(
           padding: const EdgeInsets.all(20),
           decoration: BoxDecoration(
@@ -322,7 +313,6 @@ class _ReportTab extends StatelessWidget {
         ),
         const SizedBox(height: 24),
 
-        // Category chart
         if (categories.isNotEmpty) ...[
           const Text('Spend by Category', style: TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.bold)),
           const SizedBox(height: 16),
@@ -338,7 +328,6 @@ class _ReportTab extends StatelessWidget {
           ),
           const SizedBox(height: 20),
 
-          // Category list
           ...categories.map<Widget>((cat) {
             final cost = double.tryParse(cat['total_category_cost'].toString()) ?? 0;
             final ghosts = int.tryParse(cat['ghost_count'].toString()) ?? 0;
@@ -402,10 +391,6 @@ class _ReportTab extends StatelessWidget {
     }).toList();
   }
 }
-
-// ═══════════════════════════════════════════════════════════
-// HELPERS
-// ═══════════════════════════════════════════════════════════
 
 Widget _statCard(String label, String value, Color color, IconData icon) {
   return Expanded(

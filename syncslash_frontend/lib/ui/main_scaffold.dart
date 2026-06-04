@@ -46,7 +46,7 @@ class _MainScaffoldState extends State<MainScaffold> {
     );
 
     if (confirm == true && mounted) {
-      // Clear all stored credentials
+      
       const storage = FlutterSecureStorage();
       await storage.deleteAll();
 

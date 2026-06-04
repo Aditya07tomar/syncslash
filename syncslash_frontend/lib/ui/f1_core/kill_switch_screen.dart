@@ -20,7 +20,7 @@ class _KillSwitchScreenState extends State<KillSwitchScreen> {
   @override
   void initState() {
     super.initState();
-    // Make a mutable copy so we can update status locally after API call
+    
     _sub = Map<String, dynamic>.from(widget.subscription);
   }
 
@@ -37,7 +37,7 @@ class _KillSwitchScreenState extends State<KillSwitchScreen> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.center,
           children: [
-            // Service icon
+            
             Container(
               padding: const EdgeInsets.all(6),
               decoration: BoxDecoration(
@@ -59,7 +59,6 @@ class _KillSwitchScreenState extends State<KillSwitchScreen> {
             ),
             const SizedBox(height: 30),
 
-            // Info cards row
             Row(
               children: [
                 _infoCard('Cost', '₹${_sub['detected_cost'] ?? 0}/mo', AppTheme.pastelYellow),
@@ -71,7 +70,6 @@ class _KillSwitchScreenState extends State<KillSwitchScreen> {
             ),
             const SizedBox(height: 24),
 
-            // Category info
             Container(
               width: double.infinity,
               padding: const EdgeInsets.all(18),
@@ -102,14 +100,13 @@ class _KillSwitchScreenState extends State<KillSwitchScreen> {
 
             const Spacer(),
 
-            // Kill switch / Resume buttons
             if (_isProcessing)
               const Padding(
                 padding: EdgeInsets.only(bottom: 20),
                 child: CircularProgressIndicator(color: AppTheme.mintGreen),
               )
             else ...[
-              // Freeze button (when active)
+              
               if (!isFrozen)
                 SizedBox(
                   width: double.infinity,
@@ -126,7 +123,6 @@ class _KillSwitchScreenState extends State<KillSwitchScreen> {
                   ),
                 ),
 
-              // Resume button (when frozen)
               if (isFrozen) ...[
                 SizedBox(
                   width: double.infinity,
@@ -168,7 +164,6 @@ class _KillSwitchScreenState extends State<KillSwitchScreen> {
     );
   }
 
-  /// Actually calls the backend API to freeze/unfreeze via subscription status update
   void _handleAction(BuildContext context, {required bool freeze}) async {
     setState(() => _isProcessing = true);
 
@@ -181,25 +176,24 @@ class _KillSwitchScreenState extends State<KillSwitchScreen> {
       final cardId = _sub['virtual_card_id'];
 
       if (cardId != null) {
-        // Has a linked virtual card — freeze/unfreeze it via B3 API
+        
         if (freeze) {
           success = await provider.freezeCard(cardId);
         } else {
           success = await provider.unfreezeCard(cardId);
         }
       } else {
-        // No virtual card — directly update subscription status via backend
+        
         if (freeze) {
           await api.freezeSubscription(provider.currentUserId, subId);
         } else {
           await api.unfreezeSubscription(provider.currentUserId, subId);
         }
-        // Refresh dashboard data
+        
         await provider.loadInitialData();
         success = true;
       }
 
-      // Update local state
       if (success) {
         setState(() {
           _sub['status'] = freeze ? 'frozen' : 'active';

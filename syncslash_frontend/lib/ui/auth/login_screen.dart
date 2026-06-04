@@ -59,7 +59,6 @@ class _LoginScreenState extends State<LoginScreen> with SingleTickerProviderStat
     }
   }
 
-  /// Google OAuth flow with correct v7.2.0 API
   Future<void> _handleGoogleSignIn() async {
     setState(() {
       _isLoading = true;
@@ -72,7 +71,6 @@ class _LoginScreenState extends State<LoginScreen> with SingleTickerProviderStat
         await _initializeGoogleSignIn();
       }
 
-      // authenticate() returns GoogleSignInAccount (non-null), throws on cancel
       debugPrint('🔄 Calling authenticate()...');
       final GoogleSignInAccount account = await _googleSignIn.authenticate()
           .timeout(const Duration(seconds: 60), onTimeout: () {
@@ -82,28 +80,26 @@ class _LoginScreenState extends State<LoginScreen> with SingleTickerProviderStat
       debugPrint('✅ Got account: ${account.email}');
       if (mounted) setState(() => _statusText = 'Signed in as ${account.email}');
 
-      // authentication is a SYNC getter in v7.x — no await needed
       final GoogleSignInAuthentication auth = account.authentication;
       final String? idToken = auth.idToken;
 
       debugPrint('🔑 idToken present: ${idToken != null}');
 
       if (idToken == null || idToken.isEmpty) {
-        // No idToken — use direct login with Google email + name
+        
         debugPrint('⚠️ No idToken — using direct login with email: ${account.email}');
         if (mounted) setState(() => _statusText = 'Logging in as ${account.displayName}...');
         await _directLoginWithGoogle(account);
         return;
       }
 
-      // We have an idToken — try full backend verification
       if (mounted) setState(() => _statusText = 'Verifying with server...');
 
       try {
         final result = await _api.googleLogin(idToken);
         await _completeLogin(result, account.displayName);
       } catch (backendError) {
-        // idToken verification failed — try direct login instead
+        
         debugPrint('⚠️ Token verify failed: $backendError — trying direct login');
         if (mounted) setState(() => _statusText = 'Connecting with Google account...');
         await _directLoginWithGoogle(account);
@@ -141,7 +137,6 @@ class _LoginScreenState extends State<LoginScreen> with SingleTickerProviderStat
     }
   }
 
-  /// Login via backend using Google email + name (no idToken needed)
   Future<void> _directLoginWithGoogle(GoogleSignInAccount account) async {
     try {
       final result = await _api.directLogin(
@@ -156,7 +151,6 @@ class _LoginScreenState extends State<LoginScreen> with SingleTickerProviderStat
     }
   }
 
-  /// Complete login with backend response (shared by both auth paths)
   Future<void> _completeLogin(Map<String, dynamic> result, String? displayName) async {
     final token = result['access_token'];
     final user = result['user'];
@@ -179,7 +173,6 @@ class _LoginScreenState extends State<LoginScreen> with SingleTickerProviderStat
     }
   }
 
-  /// Dev bypass login (offline only — no backend needed)
   Future<void> _loginAsDev({String name = 'Aditya'}) async {
     setState(() {
       _isLoading = true;
@@ -252,7 +245,6 @@ class _LoginScreenState extends State<LoginScreen> with SingleTickerProviderStat
             ),
             const SizedBox(height: 60),
 
-            // Error
             if (_errorMessage != null)
               Container(
                 padding: const EdgeInsets.all(12),
@@ -270,14 +262,12 @@ class _LoginScreenState extends State<LoginScreen> with SingleTickerProviderStat
                 ),
               ),
 
-            // Status
             if (_isLoading && _statusText != null)
               Padding(
                 padding: const EdgeInsets.only(bottom: 16),
                 child: Text(_statusText!, style: const TextStyle(color: AppTheme.mintGreen, fontSize: 13)),
               ),
 
-            // Google Sign-In
             SizedBox(
               width: double.infinity,
               height: 58,
@@ -304,7 +294,6 @@ class _LoginScreenState extends State<LoginScreen> with SingleTickerProviderStat
             ),
             const SizedBox(height: 16),
 
-            // Dev Mode
             SizedBox(
               width: double.infinity,
               height: 50,

@@ -1,7 +1,3 @@
-"""
-One-time database setup: run base schema + analytics schema + verify.
-Database and user already created in previous run.
-"""
 import psycopg2
 
 DB_URL = "postgresql://postgres:engr@localhost:5432/suboptimizer"

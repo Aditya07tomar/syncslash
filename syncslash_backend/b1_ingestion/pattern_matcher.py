@@ -1,19 +1,6 @@
 from backend.db.connection import run_query
 
 def run_pipeline(user_id: int) -> dict:
-    """
-    Runs the full B1 classification pipeline for a user.
-    Why call a stored function instead of writing the SQL here?
-    Because the classification logic involves two sequential UPDATE
-    statements that must be atomic. If we ran them as separate
-    Python calls, a crash between them leaves data half-processed.
-    The PostgreSQL function wraps both in one transaction.
-    Alternative: use Python's psycopg2 transaction management
-    (conn.autocommit = False, then commit manually).
-    Why not? The stored function keeps the logic in one place.
-    If we need to call this from a cron job or another service,
-    they all use the same function without duplicating logic.
-    """
 
     result = run_query(
         "SELECT * FROM run_classification_pipeline(%s)",

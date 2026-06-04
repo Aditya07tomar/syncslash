@@ -85,9 +85,6 @@ class _SplitScreenState extends State<SplitScreen> with SingleTickerProviderStat
   }
 }
 
-// ═══════════════════════════════════════════════════════════
-// P2P TAB
-// ═══════════════════════════════════════════════════════════
 class _P2PTab extends StatelessWidget {
   final AppProvider provider;
   const _P2PTab({required this.provider});
@@ -100,7 +97,6 @@ class _P2PTab extends StatelessWidget {
     final netBalance = balanceData?['net_balance'] ?? 0;
     final groups = provider.groups;
 
-    // Calculate group stats
     double totalGroupCost = 0;
     double totalYourShare = 0;
     for (final g in groups) {
@@ -113,7 +109,7 @@ class _P2PTab extends StatelessWidget {
     return ListView(
       padding: const EdgeInsets.all(20),
       children: [
-        // Net balance card
+        
         Container(
           padding: const EdgeInsets.all(24),
           decoration: BoxDecoration(
@@ -159,14 +155,12 @@ class _P2PTab extends StatelessWidget {
         ),
         const SizedBox(height: 24),
 
-        // ── Group Subscription Stats ──
         if (groups.isNotEmpty) ...[
           const Text('Group Subscriptions', style: TextStyle(color: Colors.white, fontSize: 17, fontWeight: FontWeight.bold)),
           const SizedBox(height: 6),
           const Text('Tap a group to see settlement details', style: TextStyle(color: AppTheme.textSecondary, fontSize: 12)),
           const SizedBox(height: 14),
 
-          // Summary row
           Container(
             padding: const EdgeInsets.all(16),
             decoration: BoxDecoration(
@@ -187,7 +181,6 @@ class _P2PTab extends StatelessWidget {
           ),
           const SizedBox(height: 14),
 
-          // Individual group cards
           ...groups.map<Widget>((group) {
             final name = group['name'] ?? 'Group';
             final serviceName = group['service_name'] ?? '';
@@ -246,7 +239,6 @@ class _P2PTab extends StatelessWidget {
           const SizedBox(height: 20),
         ],
 
-        // Owes you section
         if (owesYou.isNotEmpty) ...[
           const Text('People Who Owe You', style: TextStyle(color: Colors.white, fontSize: 17, fontWeight: FontWeight.bold)),
           const SizedBox(height: 12),
@@ -254,7 +246,6 @@ class _P2PTab extends StatelessWidget {
           const SizedBox(height: 20),
         ],
 
-        // You owe section
         if (youOwe.isNotEmpty) ...[
           const Text('You Owe', style: TextStyle(color: Colors.white, fontSize: 17, fontWeight: FontWeight.bold)),
           const SizedBox(height: 12),
@@ -382,9 +373,6 @@ class _P2PTab extends StatelessWidget {
   }
 }
 
-// ═══════════════════════════════════════════════════════════
-// GROUPS TAB — with Create and Join
-// ═══════════════════════════════════════════════════════════
 class _GroupsTab extends StatelessWidget {
   final AppProvider provider;
   const _GroupsTab({required this.provider});
@@ -512,7 +500,6 @@ class _GroupsTab extends StatelessWidget {
                 },
               ),
 
-        // FAB row — Create + Join
         Positioned(
           bottom: 20,
           left: 20,
@@ -791,9 +778,6 @@ class _GroupsTab extends StatelessWidget {
   }
 }
 
-// ═══════════════════════════════════════════════════════════
-// HISTORY TAB
-// ═══════════════════════════════════════════════════════════
 class _HistoryTab extends StatelessWidget {
   final AppProvider provider;
   const _HistoryTab({required this.provider});

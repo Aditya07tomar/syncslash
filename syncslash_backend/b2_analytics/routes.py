@@ -1,13 +1,3 @@
-"""
-routes.py — FastAPI Router for the B2 Analytics Engine
-Endpoints:
-  GET /analytics/fatigue/{user_id}      → per-subscription fatigue scores
-  GET /analytics/ghosts/{user_id}       → ghost/zombie subscription list
-  GET /analytics/redundancy/{user_id}   → knowledge graph overlap analysis
-  GET /analytics/report/{user_id}       → monthly spending report by category
-  GET /analytics/graph/{user_id}        → full graph data for visualization
-"""
-
 from fastapi import APIRouter, HTTPException
 from fastapi.responses import HTMLResponse
 from backend.db.connection import run_query
@@ -19,11 +9,6 @@ router = APIRouter(
 
 @router.get("/fatigue/{user_id}")
 def get_fatigue_scores(user_id: int):
-    """
-    Returns a fatigue score for each of the user's active
-    subscriptions. Higher score = more wasteful.
-    This calls the PostgreSQL stored function directly.
-    """
     try:
         rows = run_query(
             "SELECT * FROM GenerateFatigueScore(%s)",
@@ -54,10 +39,6 @@ def get_fatigue_scores(user_id: int):
 
 @router.get("/ghosts/{user_id}")
 def get_ghost_subscriptions(user_id: int):
-    """
-    Returns all ghost (zombie) subscriptions for a user.
-    A ghost subscription is one the user pays for but doesn't use.
-    """
     try:
         rows = run_query(
             "SELECT * FROM ghost_subscriptions_view WHERE user_id = %s",
@@ -83,10 +64,6 @@ def get_ghost_subscriptions(user_id: int):
 
 @router.get("/redundancy/{user_id}")
 def get_redundancy_analysis(user_id: int):
-    """
-    Detects redundant/overlapping subscriptions within the same
-    category using PostgreSQL GROUP BY. No Neo4j needed.
-    """
     try:
         
         rows = run_query("""
@@ -104,164 +81,19 @@ def get_redundancy_analysis(user_id: int):
             GROUP BY s2.category
             HAVING COUNT(*) >= 2
             ORDER BY SUM(s.detected_cost) DESC
-        """, params=(user_id,))
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=f"DB error: {str(e)}")
-
-    if not rows:
-        return {
-            "user_id": user_id,
-            "has_redundancy": False,
-            "overlaps": [],
-            "total_potential_savings": 0
-        }
-
-    overlaps = []
-    total_savings = 0
-    for row in rows:
-        services = row['services'] if isinstance(row['services'], list) else []
-        
-        most_used = max(services, key=lambda s: s.get('usage_count', 0)) if services else None
-        cheapest_cost = min(s['cost'] for s in services) if services else 0
-        total_cat_cost = sum(s['cost'] for s in services)
-        savings = total_cat_cost - cheapest_cost
-
-        overlaps.append({
-            "category": row['category'],
-            "overlap_count": row['service_count'],
-            "total_cost": total_cat_cost,
-            "services": services,
-            "most_used_service": most_used['name'] if most_used else None,
-            "potential_savings": savings,
-            "recommendation": f"You have {row['service_count']} {row['category']} services. "
-                            f"Keep {most_used['name'] if most_used else 'one'} and save ₹{savings:.0f}/mo."
-        })
-        total_savings += savings
-
-    return {
-        "user_id": user_id,
-        "has_redundancy": True,
-        "overlaps": overlaps,
-        "total_potential_savings": total_savings
-    }
-
-@router.get("/report/{user_id}")
-def get_monthly_report(user_id: int):
-    """
     Returns a comprehensive monthly spending report grouped
     by service category, including ghost counts and savings.
-    """
-    try:
-        rows = run_query(
-            "SELECT * FROM GenerateMonthlyReport(%s)",
-            params=(user_id,)
-        )
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=f"DB error: {str(e)}")
-
-    if not rows:
-        return {
-            "user_id": user_id,
-            "message": "No active subscriptions to report on.",
-            "categories": [],
-            "summary": {}
-        }
-
-    total_spend = sum(float(r["total_category_cost"]) for r in rows)
-    total_savings = sum(float(r["potential_savings"]) for r in rows)
-    total_subs = sum(int(r["service_count"]) for r in rows)
-    total_ghosts = sum(int(r["ghost_count"]) for r in rows)
-
-    return {
-        "user_id": user_id,
-        "categories": rows,
-        "summary": {
-            "total_monthly_spend": total_spend,
-            "total_potential_savings": total_savings,
-            "total_active_subscriptions": total_subs,
-            "total_ghost_subscriptions": total_ghosts,
-            "savings_percentage": round(
-                (total_savings / total_spend * 100) if total_spend > 0 else 0, 1
-            )
-        }
-    }
-
-@router.get("/graph/{user_id}")
-def get_graph_data(user_id: int):
-    """
     Builds a knowledge graph structure from PostgreSQL data.
     Returns nodes (user, services, categories) and edges
     for frontend visualization.
-    """
-    try:
-        
-        users = run_query("SELECT user_id, name FROM Users WHERE user_id = %s", params=(user_id,))
-        user_name = users[0]['name'] if users else f"User {user_id}"
-
-        subs = run_query("""
             SELECT s.sub_id, s.detected_cost, s.status,
                    s2.service_name, s2.category, s2.service_id
             FROM Subscriptions s
             JOIN Services s2 ON s.service_id = s2.service_id
             WHERE s.user_id = %s
             ORDER BY s2.category, s2.service_name
-        """, params=(user_id,))
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=f"DB error: {str(e)}")
-
-    nodes = []
-    edges = []
-
-    user_node_id = f"user_{user_id}"
-    nodes.append({"id": user_node_id, "label": user_name, "type": "user"})
-
-    categories_added = set()
-
-    for sub in subs:
-        service_id = f"svc_{sub['service_id']}"
-        category_id = f"cat_{sub['category']}"
-
-        nodes.append({
-            "id": service_id,
-            "label": sub['service_name'],
-            "type": "service",
-            "cost": float(sub['detected_cost']) if sub['detected_cost'] else 0
-        })
-
-        if sub['category'] not in categories_added:
-            nodes.append({"id": category_id, "label": sub['category'], "type": "category"})
-            categories_added.add(sub['category'])
-
-        edges.append({
-            "from": user_node_id,
-            "to": service_id,
-            "label": "SUBSCRIBED_TO",
-            "cost": float(sub['detected_cost']) if sub['detected_cost'] else 0,
-            "status": sub['status'],
-            "usage": 0
-        })
-
-        edges.append({
-            "from": service_id,
-            "to": category_id,
-            "label": "BELONGS_TO"
-        })
-
-    return {
-        "user_id": user_id,
-        "graph": {
-            "nodes": nodes,
-            "edges": edges
-        }
-    }
-
-@router.get("/graph/{user_id}/view", response_class=HTMLResponse)
-def view_graph_visualization(user_id: int):
-    """
     Renders an interactive vis.js network diagram of the user's
     Knowledge Graph directly in the browser.
-    """
-    html_content = f"""
     <!DOCTYPE html>
     <html lang="en">
     <head>

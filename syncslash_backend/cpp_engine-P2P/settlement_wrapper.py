@@ -1,10 +1,3 @@
-"""
-settlement_wrapper.py — Bridge between FastAPI and the C++ Settlement Engine
-
-Tries to load the compiled C++ pybind11 module (settlement_engine).
-Falls back to a pure Python implementation of the same Minimum Cash Flow algorithm.
-Both produce identical results.
-"""
 import sys
 import os
 
@@ -21,7 +14,6 @@ except ImportError as e:
     print(f"⚠️ C++ module not available ({e}) — using Python fallback")
 
 class Transaction:
-    """Mirrors the C++ Transaction struct."""
     def __init__(self, from_user: str, to_user: str, amount: float):
         self.from_user = from_user
         self.to_user = to_user
@@ -35,10 +27,6 @@ class Transaction:
         }
 
 def _settle_debts_python(net_balances: dict) -> list:
-    """
-    Pure Python Minimum Cash Flow algorithm.
-    Identical logic to settlements.cpp.
-    """
     transactions = []
     active = [(amount, name) for name, amount in net_balances.items() if abs(amount) > 0.01]
     active.sort()
@@ -64,7 +52,6 @@ def _settle_debts_python(net_balances: dict) -> list:
     return transactions
 
 def settle_debts(net_balances: dict) -> list:
-    """Uses C++ engine if available, else Python fallback."""
     if CPP_AVAILABLE:
         cpp_results = _cpp_engine.settle_debts(net_balances)
         return [Transaction(t.from_user, t.to_user, t.amount) for t in cpp_results]
@@ -72,5 +59,4 @@ def settle_debts(net_balances: dict) -> list:
         return _settle_debts_python(net_balances)
 
 def settle_debts_as_dicts(net_balances: dict) -> list:
-    """Returns list of dicts (JSON-serializable)."""
     return [t.to_dict() for t in settle_debts(net_balances)]

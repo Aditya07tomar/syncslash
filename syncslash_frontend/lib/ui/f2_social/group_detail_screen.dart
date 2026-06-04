@@ -18,7 +18,7 @@ class _GroupDetailScreenState extends State<GroupDetailScreen> {
   @override
   void initState() {
     super.initState();
-    // Auto-fetch optimized settlement on open
+    
     WidgetsBinding.instance.addPostFrameCallback((_) {
       final provider = Provider.of<AppProvider>(context, listen: false);
       final groupId = widget.group['group_id'];
@@ -72,7 +72,7 @@ class _GroupDetailScreenState extends State<GroupDetailScreen> {
           body: ListView(
             padding: const EdgeInsets.all(20),
             children: [
-              // ── Group Info Card ──
+              
               Container(
                 padding: const EdgeInsets.all(20),
                 decoration: BoxDecoration(
@@ -111,7 +111,6 @@ class _GroupDetailScreenState extends State<GroupDetailScreen> {
               ),
               const SizedBox(height: 24),
 
-              // ── Per-Person Share ──
               if (perPerson != null) ...[
                 Container(
                   padding: const EdgeInsets.all(18),
@@ -135,7 +134,6 @@ class _GroupDetailScreenState extends State<GroupDetailScreen> {
                 const SizedBox(height: 20),
               ],
 
-              // ── Net Balances ──
               if (netBalances.isNotEmpty) ...[
                 const Text('Net Balances', style: TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.bold)),
                 const SizedBox(height: 4),
@@ -175,7 +173,6 @@ class _GroupDetailScreenState extends State<GroupDetailScreen> {
                 const SizedBox(height: 24),
               ],
 
-              // ── Settlement Transactions (C++ Engine Output) ──
               Row(
                 children: [
                   const Icon(Icons.auto_awesome_rounded, color: AppTheme.lavender, size: 20),
@@ -217,7 +214,7 @@ class _GroupDetailScreenState extends State<GroupDetailScreen> {
                     ),
                     child: Row(
                       children: [
-                        // From user
+                        
                         Expanded(
                           child: Column(
                             children: [
@@ -235,7 +232,7 @@ class _GroupDetailScreenState extends State<GroupDetailScreen> {
                             ],
                           ),
                         ),
-                        // Arrow + Amount
+                        
                         Column(
                           children: [
                             Container(
@@ -263,7 +260,7 @@ class _GroupDetailScreenState extends State<GroupDetailScreen> {
                               const Text('SETTLED', style: TextStyle(color: AppTheme.mintGreen, fontSize: 9, fontWeight: FontWeight.bold)),
                           ],
                         ),
-                        // To user
+                        
                         Expanded(
                           child: Column(
                             children: [
@@ -288,7 +285,6 @@ class _GroupDetailScreenState extends State<GroupDetailScreen> {
 
               const SizedBox(height: 30),
 
-              // ── Settle Button ──
               if (transactions.isNotEmpty && !_settled)
                 SizedBox(
                   width: double.infinity,

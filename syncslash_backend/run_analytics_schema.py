@@ -1,7 +1,3 @@
-"""
-One-time script to execute analytics_schema.sql against the PostgreSQL database
-using psycopg2 (no psql binary needed).
-"""
 import os
 import psycopg2
 from dotenv import load_dotenv

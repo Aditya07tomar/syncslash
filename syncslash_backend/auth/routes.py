@@ -58,12 +58,6 @@ class DirectLoginRequest(BaseModel):
 
 @router.post("/login")
 def direct_login(request: DirectLoginRequest):
-    """
-    Direct login using Google account email + name.
-    Used when the Google SDK returns the account but no idToken
-    (common in debug/testing mode).
-    Creates the user if they don't exist, returns a real JWT.
-    """
     try:
         email = request.email
         name = request.name

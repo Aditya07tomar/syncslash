@@ -72,7 +72,6 @@ class _KnowledgeGraphScreenState extends State<KnowledgeGraphScreen> {
       );
     }
 
-    // Group nodes by type
     final userNodes = nodes.where((n) => n['type'] == 'user').toList();
     final serviceNodes = nodes.where((n) => n['type'] == 'service').toList();
     final categoryNodes = nodes.where((n) => n['type'] == 'category').toList();
@@ -80,7 +79,7 @@ class _KnowledgeGraphScreenState extends State<KnowledgeGraphScreen> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        // Header
+        
         Container(
           padding: const EdgeInsets.all(20),
           decoration: BoxDecoration(
@@ -118,17 +117,14 @@ class _KnowledgeGraphScreenState extends State<KnowledgeGraphScreen> {
         ),
         const SizedBox(height: 20),
 
-        // Category nodes with services
         const Text('Graph Structure', style: TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.bold)),
         const SizedBox(height: 12),
 
-        // User node
         if (userNodes.isNotEmpty)
           _buildNodeTile(userNodes[0]['label'], 'user', null),
 
-        // Services grouped by category edges
         ...categoryNodes.map<Widget>((catNode) {
-          // Find services connected to this category
+          
           final catId = catNode['id'];
           final connectedServiceIds = edges
               .where((e) => e['to'] == catId && e['label'] == 'BELONGS_TO')
@@ -145,7 +141,7 @@ class _KnowledgeGraphScreenState extends State<KnowledgeGraphScreen> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                // Category header
+                
                 Container(
                   padding: const EdgeInsets.all(14),
                   decoration: BoxDecoration(
@@ -166,10 +162,10 @@ class _KnowledgeGraphScreenState extends State<KnowledgeGraphScreen> {
                     ],
                   ),
                 ),
-                // Services
+                
                 ...connectedServices.map<Widget>((svc) {
                   final cost = svc['cost'];
-                  // Find edge with usage info
+                  
                   final subEdge = edges.firstWhere(
                     (e) => e['to'] == svc['id'] && e['label'] == 'SUBSCRIBED_TO',
                     orElse: () => {},

@@ -117,7 +117,7 @@ class _VirtualCardsScreenState extends State<VirtualCardsScreen> {
       ),
       child: Column(
         children: [
-          // Card header
+          
           Padding(
             padding: const EdgeInsets.fromLTRB(20, 20, 20, 12),
             child: Row(
@@ -168,13 +168,12 @@ class _VirtualCardsScreenState extends State<VirtualCardsScreen> {
               ),
             ),
 
-          // Action buttons
           const Divider(color: Colors.white10, height: 24),
           Padding(
             padding: const EdgeInsets.fromLTRB(12, 0, 12, 12),
             child: Row(
               children: [
-                // Freeze / Resume
+                
                 Expanded(
                   child: TextButton.icon(
                     style: TextButton.styleFrom(
@@ -203,7 +202,7 @@ class _VirtualCardsScreenState extends State<VirtualCardsScreen> {
                   ),
                 ),
                 Container(width: 1, height: 24, color: Colors.white10),
-                // Cancel
+                
                 Expanded(
                   child: TextButton.icon(
                     style: TextButton.styleFrom(foregroundColor: AppTheme.alertRed),
